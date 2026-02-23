@@ -13,9 +13,11 @@ from utils.helpers import load_model, predict_single_match
 
 app = modal.App("football-predictor")
 
+# التعديل الجديد المتوافق مع آخر تحديث لـ Modal 1.0
 image = (
     modal.Image.debian_slim()
     .pip_install("fastapi", "pydantic", "pandas", "scikit-learn", "xgboost", "requests", "python-dotenv", "joblib")
+    .add_local_dir(os.path.dirname(__file__), remote_path="/root")
 )
 
 web_app = FastAPI(title="Football Predictor API")
@@ -47,11 +49,9 @@ def predict_match(request: MatchRequest):
     result["status"] = "success"
     return result
 
-# التعديل السحري هنا: إضافة mounts لرفع المجلدات المساعدة
 @app.function(
     image=image, 
-    secrets=[modal.Secret.from_name("football-api-secret")],
-    mounts=[modal.Mount.from_local_dir(os.path.dirname(__file__), remote_path="/root")]
+    secrets=[modal.Secret.from_name("football-api-secret")]
 )
 @modal.asgi_app()
 def fastapi_app():
