@@ -2,19 +2,36 @@ import pandas as pd
 import joblib
 import os
 
-# مسار النموذج المحفوظ
-MODEL_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'models', 'football_model.joblib')
-
 def load_model():
-    """تحميل النموذج المُدرب في الذاكرة"""
-    if os.path.exists(MODEL_PATH):
-        return joblib.load(MODEL_PATH)
+    """دالة ذكية للبحث عن النموذج في كل المسارات المحتملة"""
+    possible_paths = [
+        "football_model.joblib",
+        "/root/football_model.joblib",
+        os.path.join(os.path.dirname(os.path.dirname(__file__)), "football_model.joblib"),
+        os.path.join(os.path.dirname(__file__), "football_model.joblib"),
+        os.path.join(os.path.dirname(os.path.dirname(__file__)), 'models', 'football_model.joblib')
+    ]
+    
+    for path in possible_paths:
+        if os.path.exists(path):
+            print(f"✅ تم تحميل النموذج بنجاح من: {path}")
+            return joblib.load(path)
+            
+    print("❌ لم يتم العثور على ملف النموذج!")
     return None
 
 def predict_single_match(team_a: str, team_b: str, model_data: dict) -> dict:
     """
     استقبال فريقين وتوقع نتيجة المباراة باستخدام النموذج المحفوظ.
     """
+    # حماية إضافية: إذا لم يجد النموذج لأي سبب، يعيد رسالة خطأ بدلاً من إيقاف الخادم
+    if not model_data:
+        return {
+            "match": f"{team_a} vs {team_b}",
+            "prediction": "جاري تجهيز الذكاء الاصطناعي... حاول مرة أخرى بعد قليل",
+            "win_probability": 0.0
+        }
+
     model = model_data['model']
     model_columns = model_data['columns']
     
@@ -25,7 +42,6 @@ def predict_single_match(team_a: str, team_b: str, model_data: dict) -> dict:
     input_encoded = pd.get_dummies(input_data)
     
     # التأكد من أن المدخلات تحتوي على نفس أعمدة التدريب بالضبط
-    # إذا كان هناك فريق جديد، سيتم ملء عموده بـ 0 (False)
     input_aligned = input_encoded.reindex(columns=model_columns, fill_value=0)
     
     # التنبؤ بالنتيجة (0 = تعادل/فوز الضيف، 1 = فوز المستضيف)
