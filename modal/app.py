@@ -47,9 +47,11 @@ def predict_match(request: MatchRequest):
     result["status"] = "success"
     return result
 
+# التعديل السحري هنا: إضافة mounts لرفع المجلدات المساعدة
 @app.function(
     image=image, 
-    secrets=[modal.Secret.from_name("football-api-secret")]
+    secrets=[modal.Secret.from_name("football-api-secret")],
+    mounts=[modal.Mount.from_local_dir(os.path.dirname(__file__), remote_path="/root")]
 )
 @modal.asgi_app()
 def fastapi_app():
