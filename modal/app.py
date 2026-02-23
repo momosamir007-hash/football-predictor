@@ -24,18 +24,15 @@ class MatchRequest(BaseModel):
     team_a: str
     team_b: str
 
-# 1. مسار جديد لجلب المباريات القادمة
 @web_app.get("/upcoming")
 def get_upcoming():
     matches = fetch_upcoming_matches("PL")
     return {"status": "success", "matches": matches}
 
-# 2. المسار الحقيقي للتنبؤ
 @web_app.post("/predict")
 def predict_match(request: MatchRequest):
     model_data = load_model()
     
-    # إذا كان هذا أول تشغيل والنموذج غير موجود، دربه الآن!
     if not model_data:
         print("🧠 جاري تدريب النموذج لأول مرة...")
         df = fetch_football_data_api("PL")
