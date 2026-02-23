@@ -6,9 +6,9 @@ import os
 # إضافة المسار الجذر للسماح باستيراد الملفات
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
-from streamlit.utils.api_client import get_match_prediction
-from streamlit.components.charts import plot_win_probability
-from streamlit.components.cards import display_match_card
+from utils.api_client import get_match_prediction
+from components.charts import plot_win_probability
+from components.cards import display_match_card
 
 # إعدادات الصفحة
 st.set_page_config(page_title="توقعات المباريات", page_icon="📊", layout="wide")
