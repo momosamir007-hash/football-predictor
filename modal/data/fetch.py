@@ -3,11 +3,11 @@ import requests
 import pandas as pd
 from dotenv import load_dotenv
 
-# تحميل المتغيرات من ملف .env (للاختبار المحلي فقط)
+# تحميل المتغيرات
 load_dotenv()
 
 def fetch_football_data_api(competition_code: str = "PL") -> pd.DataFrame:
-    """جلب بيانات المباريات التاريخية"""
+    """جلب بيانات المباريات التاريخية للتدريب"""
     api_key = os.environ.get("FOOTBALL_DATA_API_KEY")
     if not api_key: return pd.DataFrame()
 
@@ -63,4 +63,38 @@ def fetch_upcoming_matches(competition_code: str = "PL") -> list:
         return upcoming
     except Exception as e:
         print(f"❌ خطأ في جلب المباريات القادمة: {e}")
+        return []
+
+def fetch_team_stats(competition_code: str = "PL") -> list:
+    """جلب إحصائيات الفرق (ترتيب الدوري) الحقيقية"""
+    api_key = os.environ.get("FOOTBALL_DATA_API_KEY")
+    if not api_key: return []
+    
+    url = f"https://api.football-data.org/v4/competitions/{competition_code}/standings"
+    headers = {"X-Auth-Token": api_key}
+    
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        standings = response.json().get("standings", [])
+        
+        if not standings: return []
+        
+        table = standings[0].get("table", [])
+        stats = []
+        for team in table:
+            played = team["playedGames"]
+            won = team["won"]
+            win_pct = round((won / played * 100), 1) if played > 0 else 0
+            
+            stats.append({
+                "الفريق": team["team"]["name"],
+                "الأهداف المسجلة": team["goalsFor"],
+                "الأهداف المستقبلة": team["goalsAgainst"],
+                "النقاط": team["points"],
+                "نسبة الفوز (%)": win_pct
+            })
+        return stats
+    except Exception as e:
+        print(f"❌ خطأ في جلب الإحصائيات: {e}")
         return []
