@@ -6,14 +6,13 @@ import os
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from data.fetch import fetch_football_data_api, fetch_upcoming_matches
+from data.fetch import fetch_football_data_api, fetch_upcoming_matches, fetch_team_stats
 from data.features import create_features
 from models.train import train_and_save_model
 from utils.helpers import load_model, predict_single_match
 
 app = modal.App("football-predictor")
 
-# التعديل الجديد المتوافق مع آخر تحديث لـ Modal 1.0
 image = (
     modal.Image.debian_slim()
     .pip_install("fastapi", "pydantic", "pandas", "scikit-learn", "xgboost", "requests", "python-dotenv", "joblib")
@@ -30,6 +29,11 @@ class MatchRequest(BaseModel):
 def get_upcoming():
     matches = fetch_upcoming_matches("PL")
     return {"status": "success", "matches": matches}
+
+@web_app.get("/stats")
+def get_stats():
+    stats = fetch_team_stats("PL")
+    return {"status": "success", "stats": stats}
 
 @web_app.post("/predict")
 def predict_match(request: MatchRequest):
