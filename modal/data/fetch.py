@@ -1,3 +1,45 @@
+import os
+import requests
+import pandas as pd
+from dotenv import load_dotenv
+
+# تحميل المتغيرات من ملف .env (للاختبار المحلي فقط)
+load_dotenv()
+
+def fetch_football_data_api(competition_code: str = "PL") -> pd.DataFrame:
+    """جلب بيانات المباريات التاريخية"""
+    api_key = os.environ.get("FOOTBALL_DATA_API_KEY")
+    if not api_key: return pd.DataFrame()
+
+    url = f"https://api.football-data.org/v4/competitions/{competition_code}/matches"
+    headers = {"X-Auth-Token": api_key}
+
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        matches = response.json().get("matches", [])
+        
+        processed_matches = []
+        for match in matches:
+            if match["status"] != "FINISHED": continue
+            match_data = {
+                "Date": match["utcDate"],
+                "HomeTeam": match["homeTeam"]["name"],
+                "AwayTeam": match["awayTeam"]["name"],
+                "FTHG": match["score"]["fullTime"]["home"],
+                "FTAG": match["score"]["fullTime"]["away"],
+                "FTR": match["score"]["winner"]
+            }
+            processed_matches.append(match_data)
+            
+        df = pd.DataFrame(processed_matches)
+        winner_map = {"HOME_TEAM": "H", "AWAY_TEAM": "A", "DRAW": "D"}
+        df["FTR"] = df["FTR"].map(winner_map)
+        return df
+    except Exception as e:
+        print(f"❌ خطأ: {e}")
+        return pd.DataFrame()
+
 def fetch_upcoming_matches(competition_code: str = "PL") -> list:
     """جلب المباريات القادمة التي لم تُلعب بعد"""
     api_key = os.environ.get("FOOTBALL_DATA_API_KEY")
