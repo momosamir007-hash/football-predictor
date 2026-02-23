@@ -3,7 +3,7 @@ import streamlit as st
 
 # سنقوم بتحديث هذا الرابط بعد نشر Modal
 # مثال: "https://YOUR_WORKSPACE_NAME--football-predictor-fastapi-app.modal.run"
-MODAL_API_URL = "http://localhost:8000" # استخدم الرابط الفعلي بعد النشر
+MODAL_API_URL = "https://momosamir007--football-predictor-fastapi-app.modal.run" # استخدم الرابط الفعلي بعد النشر
 
 def get_match_prediction(team_a: str, team_b: str):
     """
